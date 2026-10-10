@@ -35,6 +35,9 @@ h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em;marg
 .sub{color:var(--muted);font-size:.9rem}
 .notice{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:8px 0 12px;font-size:.92rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .notice:empty{display:none}
+.blinds{display:flex;gap:8px 14px;align-items:baseline;flex-wrap:wrap;font-size:.95rem}
+.blinds b{font-size:1.05rem}
+.blinds .sub{font-variant-numeric:tabular-nums}
 .notice code{background:var(--bg);padding:2px 6px;border-radius:6px;font-size:.85rem;word-break:break-all}
 
 /* lobby */
@@ -159,11 +162,12 @@ h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em;marg
   <header>
     <h1>LeRoy's Poker Night</h1>
     <div class="hdr-r">
-      <span class="sub">No-limit Texas Hold'em · £10 stacks · 10p / 20p blinds · up to 8 players</span>
+      <span class="sub">No-limit Texas Hold'em · £10 stacks · up to 8 players</span>
       <button class="btn ghost sm" id="soundBtn" aria-pressed="true">Sound on</button>
     </div>
   </header>
   <div class="notice" id="notice"></div>
+  <div class="blinds" id="blinds"></div>
   <div class="table" id="table">
     <div class="rail"><div class="felt"></div></div>
     <div class="center" id="center"></div>
@@ -174,9 +178,11 @@ h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em;marg
       <h2>How it works</h2>
       <ul class="rules">
         <li>Pick an empty seat to sit down with £10. Anyone seated can deal once two players are in.</li>
-        <li>Blinds are 10p and 20p. Minimum raise is the size of the last raise.</li>
+        <li>Blinds start at 10p / 20p and go up every 40 minutes once the first hand is dealt. New blinds kick in at the start of the next hand.</li>
+        <li>Minimum raise is the size of the last raise.</li>
         <li>If someone stalls for 45 seconds, anyone at the table can skip them (they check, or fold if facing a bet).</li>
-        <li>Bust? Rebuy for £10 between hands. Leave and come back later and your stack is waiting.</li>
+        <li>Each player gets one £10 rebuy if they bust. After that, you're out.</li>
+        <li>Leave and come back later and your stack is waiting.</li>
         <li>The game runs in the host's browser, so the host needs to keep their tab open.</li>
       </ul>
       <p style="margin:10px 0 0"><button class="linkbtn" id="reset" hidden>Reset the table</button></p>
@@ -189,7 +195,11 @@ h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em;marg
 
 <script>
 (() => {
-const SEATS = 8, START = 1000, SB = 10, BB = 20, SKIP_MS = 45000;
+const SEATS = 8, START = 1000, SB = 10, BB = 20, SKIP_MS = 45000, MAX_REBUYS = 1;
+const LEVEL_MS = 40 * 60 * 1000;
+const BLINDS = [[10,20],[20,40],[30,60],[50,100],[75,150],[100,200],[150,300],[200,400],[300,600],[500,1000],[750,1500],[1000,2000]];
+const chipStr = p => p < 100 ? p + "p" : money(p);
+const levelFor = (start, age) => start ? Math.min(Math.floor(age / LEVEL_MS), BLINDS.length - 1) : 0;
 const PREFIX = "holdem-night-lee-";
 const RANKS = "23456789TJQKA";
 const SUIT = { s: "♠", h: "♥", d: "♦", c: "♣" };
@@ -218,7 +228,7 @@ let raiseVal = null, raiseKey = "";
 
 function emptyState() {
   return { seats: Array(SEATS).fill(null), phase: "waiting", deck: [], board: [], dealer: -1, turn: -1,
-           currentBet: 0, minRaise: BB, handNo: 0, log: [], result: null, turnSince: 0, banks: {}, names: {} };
+           currentBet: 0, minRaise: BB, handNo: 0, log: [], result: null, turnSince: 0, banks: {}, names: {}, rebuys: {}, levelStart: 0, level: 0, sb: SB, bb: BB };
 }
 
 /* ---------- hand evaluation ---------- */
@@ -286,9 +296,13 @@ function startHand(s) {
   for (let r = 0; r < 2; r++) el.forEach(i => s.seats[i].hole.push(s.deck.pop()));
   const sb = el.length === 2 ? s.dealer : nextSeat(s, s.dealer, i => el.includes(i));
   const bb = nextSeat(s, sb, i => el.includes(i));
-  post(s.seats[sb], SB); post(s.seats[bb], BB);
+  if (!s.levelStart) s.levelStart = Date.now();
+  const lvl = levelFor(s.levelStart, Date.now() - s.levelStart);
+  if (lvl !== (s.level || 0)) { s.level = lvl; log(s, null, `Blinds go up to ${chipStr(BLINDS[lvl][0])} / ${chipStr(BLINDS[lvl][1])}`); }
+  [s.sb, s.bb] = BLINDS[s.level || 0];
+  post(s.seats[sb], s.sb); post(s.seats[bb], s.bb);
   s.currentBet = Math.max(s.seats[sb].bet, s.seats[bb].bet);
-  s.minRaise = BB; s.phase = "preflop";
+  s.minRaise = s.bb; s.phase = "preflop";
   log(s, null, `Hand ${s.handNo} dealt`);
   s.turn = bb;
   advance(s);
@@ -306,7 +320,7 @@ function advance(s) {
   const nxt = nextSeat(s, s.turn, needs);
   if (nxt >= 0) { s.turn = nxt; s.turnSince = Date.now(); return; }
   s.seats.forEach(p => { if (p) { p.bet = 0; p.acted = false; } });
-  s.currentBet = 0; s.minRaise = BB;
+  s.currentBet = 0; s.minRaise = s.bb || BB;
   const actors = s.seats.filter(canAct).length;
   if (s.phase === "river") return showdown(s);
   dealStreet(s);
@@ -419,7 +433,9 @@ function handle(id, m) {
     case "rebuy": {
       const p = s.seats[i];
       if (!p || p.chips > 0 || (p.inHand && BETTING.includes(s.phase))) break;
-      p.chips = START; log(s, id, `rebuys for ${money(START)}`); ok = true; break;
+      if ((s.rebuys[id] || 0) >= MAX_REBUYS) { sendError(id, "You've already used your rebuy."); break; }
+      s.rebuys[id] = (s.rebuys[id] || 0) + 1;
+      p.chips = START; log(s, id, `rebuys for ${money(START)} (no more rebuys left)`); ok = true; break;
     }
     case "skip": {
       if (i < 0 || !BETTING.includes(s.phase) || Date.now() - s.turnSince < SKIP_MS) break;
@@ -447,6 +463,7 @@ function viewFor(id) {
   const online = { [myId]: true }; conns.forEach((c, pid) => { if (c.open) online[pid] = true; });
   return {
     ...S, deck: undefined, banks: undefined, online,
+    levelAge: S.levelStart ? Date.now() - S.levelStart : 0,
     turnAge: S.turnSince ? Date.now() - S.turnSince : 0,
     seats: S.seats.map(p => p && ({ ...p, hole: p.id === id || (reveal && live(p)) ? p.hole : p.hole.map(() => null) }))
   };
@@ -470,7 +487,7 @@ function send(m) {
 
 function startHost() {
   isHost = true;
-  try { const saved = JSON.parse(store.get("holdem-state-" + room)); S = saved && Array.isArray(saved.seats) ? saved : emptyState(); }
+  try { const saved = JSON.parse(store.get("holdem-state-" + room)); S = saved && Array.isArray(saved.seats) ? { ...emptyState(), ...saved } : emptyState(); }
   catch (e) { S = emptyState(); }
   S.names[myId] = myName;
   setView(viewFor(myId));
@@ -634,7 +651,27 @@ function syncSoundBtn() {
 }
 $("#soundBtn").onclick = () => { soundOn = !soundOn; store.set("holdem-sound", soundOn ? "on" : "off"); syncSoundBtn(); if (soundOn) { audio(); sTap(); } };
 syncSoundBtn();
-function render() { if (!view) return; renderTable(); renderBar(); renderLog(); }
+function render() { if (!view) return; renderTable(); renderBar(); renderLog(); renderBlinds(); }
+function renderBlinds() {
+  const b = $("#blinds"); if (!view) return;
+  const cur = view.level || 0, [sb, bb] = BLINDS[cur];
+  b.innerHTML = "";
+  b.append(el("b", null, `Blinds ${chipStr(sb)} / ${chipStr(bb)}`));
+  let txt;
+  if (!view.levelStart) txt = "They go up every 40 minutes once the first hand is dealt.";
+  else {
+    const age = (view.levelAge || 0) + (Date.now() - viewAt);
+    const due = levelFor(view.levelStart, age);
+    if (cur >= BLINDS.length - 1) txt = "Top level reached.";
+    else if (due > cur) txt = `Going up to ${chipStr(BLINDS[due][0])} / ${chipStr(BLINDS[due][1])} next hand.`;
+    else {
+      const left = Math.max(0, (cur + 1) * LEVEL_MS - age), m = Math.floor(left / 60000), sec = Math.floor(left / 1000) % 60;
+      txt = `Up to ${chipStr(BLINDS[cur + 1][0])} / ${chipStr(BLINDS[cur + 1][1])} in ${m}:${String(sec).padStart(2, "0")}`;
+    }
+  }
+  b.append(el("span", "sub", txt));
+}
+setInterval(renderBlinds, 1000);
 
 function renderTable() {
   const s = view, t = $("#table");
@@ -677,7 +714,7 @@ function renderTable() {
       else if (p.inHand && p.folded && BETTING.includes(s.phase)) tag = "Folded";
       else if (p.inHand && p.allin && !p.folded) tag = "All in";
       else if (!p.inHand && BETTING.includes(s.phase)) tag = "Next hand";
-      else if (p.chips === 0 && !p.inHand) tag = "Busted";
+      else if (p.chips === 0 && !p.inHand) tag = (s.rebuys && s.rebuys[p.id] || 0) >= MAX_REBUYS ? "Out" : "Busted";
       if (s.phase === "showdown" && winSeats.has(i)) tag = "Won " + money(s.result.wins.find(w => w.seat === i).amount);
       if (tag) seat.append(el("span", "tag", tag));
       if (p.bet > 0) {
@@ -716,6 +753,7 @@ function renderBar() {
     let line = "";
     if (p.inHand && !p.folded && s.board.length >= 3 && p.hole[0]) line = handName(best([...p.hole, ...s.board]));
     else if (p.inHand && p.folded) line = "Folded";
+    else if (p.chips === 0 && !p.inHand && ((s.rebuys && s.rebuys[myId]) || 0) >= MAX_REBUYS) line = "You're out. No rebuys left.";
     else if (BETTING.includes(s.phase) && !p.inHand) line = "You're in next hand";
     if (BETTING.includes(s.phase) && s.turn >= 0 && s.turn !== i && s.seats[s.turn]) line = (line ? line + " · " : "") + `Waiting on ${nameOf(s.seats[s.turn].id)}`;
     info.append(el("span", null, line));
@@ -758,7 +796,8 @@ function renderBar() {
         setV(raiseVal);
       }
     } else if (!BETTING.includes(s.phase)) {
-      if (p.chips === 0) btn("Rebuy £10", "gold", () => send({ cmd: "rebuy" }));
+      const rebuysUsed = (s.rebuys && s.rebuys[myId]) || 0;
+      if (p.chips === 0 && rebuysUsed < MAX_REBUYS) btn("Rebuy £10 (one only)", "gold", () => { if (confirm("Use your one rebuy for £10?")) send({ cmd: "rebuy" }); });
       btn(s.phase === "waiting" ? "Deal" : "Deal next hand", "go", () => send({ cmd: "deal" }), eligibleToDeal(s).length < 2);
     }
     const elapsed = (s.turnAge || 0) + (Date.now() - viewAt);
