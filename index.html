@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Hold'em Night</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E♠️%3C/text%3E%3C/svg%3E">
+<title>LeRoy's Poker Night</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💗%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
   --bg:#dfe4dc; --ink:#14201a; --muted:#56645b; --panel:#f4f6f1; --line:#c3cbbf;
-  --felt:#1d5c43; --felt-hi:#2a7556; --rail:#33200f; --rail-hi:#55361c;
+  --felt:#c23f7b; --felt-hi:#de6a9f; --rail:#3b1328; --rail-hi:#62223f;
   --brass:#d4a845; --card:#fdfdf8; --red:#c4262e; --black:#15171a; --go:#2f8f5b;
   --font:"Bricolage Grotesque", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
@@ -29,6 +29,7 @@ button{cursor:pointer}
 button:focus-visible,input:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
 [hidden]{display:none!important}
 .wrap{max-width:1100px;margin:0 auto;padding:16px 16px 150px}
+header .hdr-r{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
 h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em;margin:0;line-height:1}
 .sub{color:var(--muted);font-size:.9rem}
@@ -53,9 +54,9 @@ h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em;marg
 .felt{position:absolute;inset:4.5%;border-radius:999px;background:radial-gradient(ellipse at 50% 40%,var(--felt-hi),var(--felt) 65%);box-shadow:inset 0 0 0 2px rgba(212,168,69,.35),inset 0 10px 40px rgba(0,0,0,.35)}
 .center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px;width:70%}
 .board{display:flex;gap:6px;min-height:64px}
-.pot{color:#f3e6c4;font-weight:600;font-size:.95rem}
+.pot{color:#ffe6f1;font-weight:600;font-size:.95rem}
 .result{color:#fff;font-weight:600;text-align:center;font-size:.95rem;max-width:100%}
-.wm{color:rgba(255,255,255,.13);font-weight:800;font-size:clamp(1.2rem,4vw,2.6rem);letter-spacing:-.03em;user-select:none}
+.wm{color:rgba(255,255,255,.2);text-align:center;font-weight:800;font-size:clamp(1.2rem,4vw,2.6rem);letter-spacing:-.03em;user-select:none}
 
 .seat{position:absolute;transform:translate(-50%,-50%);width:clamp(92px,15%,150px);display:flex;flex-direction:column;align-items:center;gap:4px;z-index:2}
 .plate{width:100%;background:var(--panel);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:6px 8px;display:flex;align-items:center;gap:7px;box-shadow:0 4px 12px rgba(0,0,0,.18);position:relative}
@@ -85,7 +86,7 @@ h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em;marg
 .card.sm .s{font-size:.85rem;margin-top:0}
 .card.lg{width:60px;height:84px;font-size:1.5rem}
 .card.lg .s{font-size:1.6rem}
-.card.back{background:repeating-linear-gradient(45deg,#7d1d22 0 5px,#9b2a30 5px 10px);border:2px solid var(--card)}
+.card.back{background:repeating-linear-gradient(45deg,#5e1838 0 5px,#7d2550 5px 10px);border:2px solid var(--card)}
 .card.slot{background:rgba(0,0,0,.15);box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
 
 /* bottom bar */
@@ -139,7 +140,7 @@ h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em;marg
 
 <!-- Lobby -->
 <section class="lobby" id="lobby" hidden>
-  <h1>Hold'em Night</h1>
+  <h1>LeRoy's Poker Night</h1>
   <p id="lobbyText">No-limit Texas Hold'em for up to 8 friends. Everyone starts with £10.</p>
   <div class="field">
     <label for="nameIn">Your name</label>
@@ -156,8 +157,11 @@ h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em;marg
 <div id="game" hidden>
 <div class="wrap">
   <header>
-    <h1>Hold'em Night</h1>
-    <span class="sub">No-limit Texas Hold'em · £10 stacks · 10p / 20p blinds · up to 8 players</span>
+    <h1>LeRoy's Poker Night</h1>
+    <div class="hdr-r">
+      <span class="sub">No-limit Texas Hold'em · £10 stacks · 10p / 20p blinds · up to 8 players</span>
+      <button class="btn ghost sm" id="soundBtn" aria-pressed="true">Sound on</button>
+    </div>
   </header>
   <div class="notice" id="notice"></div>
   <div class="table" id="table">
@@ -260,7 +264,7 @@ function nextSeat(s, from, pred) {
   for (let i = 1; i <= SEATS; i++) { const k = (from + i + SEATS) % SEATS; if (pred(k)) return k; }
   return -1;
 }
-function log(s, id, txt) { s.log.push({ id, txt }); if (s.log.length > 40) s.log = s.log.slice(-40); }
+function log(s, id, txt) { s.logN = (s.logN || 0) + 1; s.log.push({ id, txt }); if (s.log.length > 40) s.log = s.log.slice(-40); }
 function post(p, amt) { const a = Math.min(amt, p.chips); p.chips -= a; p.bet += a; p.total += a; if (p.chips === 0) p.allin = true; return a; }
 function shuffled() {
   const d = []; for (const r of RANKS) for (const su of "shdc") d.push(r + su);
@@ -548,7 +552,88 @@ function cardEl(c, size) {
 const nameOf = id => (view && view.names && view.names[id]) || "Player";
 function colorOf(id) { let h = 0; for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) % 360; return `hsl(${h} 45% 42%)`; }
 function status(msg) { if (!isHost || !msg) { const n = $("#notice"); n.innerHTML = ""; if (msg) n.textContent = msg; } else { $("#notice").textContent = msg; } }
-function setView(v) { view = v; viewAt = Date.now(); render(); }
+function setView(v) { const prev = view; view = v; viewAt = Date.now(); playFor(prev, v); render(); }
+
+/* ---------- sound (synthesised, no files needed) ---------- */
+let soundOn = store.get("holdem-sound") !== "off";
+let ac = null;
+function audio() {
+  if (!soundOn) return null;
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") ac.resume();
+  } catch (e) { return null; }
+  return ac.state === "running" ? ac : null;
+}
+["pointerdown", "keydown"].forEach(ev => window.addEventListener(ev, () => { if (soundOn) audio(); }, { passive: true }));
+function noise(ctx, dur) {
+  const b = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate);
+  const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource(); src.buffer = b; return src;
+}
+function env(ctx, t, peak, attack, decay) {
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(peak, t + attack);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + attack + decay);
+  g.connect(ctx.destination); return g;
+}
+// a card flicking onto the felt
+function sDeal(count) {
+  const ctx = audio(); if (!ctx) return;
+  for (let k = 0; k < count; k++) {
+    const t = ctx.currentTime + k * 0.09 + Math.random() * 0.02;
+    const n = noise(ctx, 0.08), f = ctx.createBiquadFilter();
+    f.type = "bandpass"; f.frequency.value = 2600 + Math.random() * 900; f.Q.value = 0.9;
+    n.connect(f); f.connect(env(ctx, t, 0.16, 0.004, 0.06)); n.start(t); n.stop(t + 0.09);
+  }
+}
+// two knuckle taps on the table
+function sTap() {
+  const ctx = audio(); if (!ctx) return;
+  [0, 0.12].forEach((d, k) => {
+    const t = ctx.currentTime + d;
+    const o = ctx.createOscillator(); o.type = "sine";
+    o.frequency.setValueAtTime(190 - k * 15, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.08);
+    o.connect(env(ctx, t, 0.35, 0.003, 0.09)); o.start(t); o.stop(t + 0.12);
+    const n = noise(ctx, 0.03), f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 900;
+    n.connect(f); f.connect(env(ctx, t, 0.08, 0.002, 0.025)); n.start(t); n.stop(t + 0.04);
+  });
+}
+// cha-ching: a drawer clunk then two bright bells and a few coins
+function sWin() {
+  const ctx = audio(); if (!ctx) return;
+  const t0 = ctx.currentTime;
+  const n = noise(ctx, 0.12), f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 5200; f.Q.value = 1.4;
+  n.connect(f); f.connect(env(ctx, t0, 0.12, 0.004, 0.1)); n.start(t0); n.stop(t0 + 0.13);
+  [[0.1, [1318.5, 1975.5]], [0.24, [1568, 2637]]].forEach(([d, freqs]) => {
+    const t = t0 + d;
+    freqs.forEach((fr, k) => {
+      const o = ctx.createOscillator(); o.type = k ? "sine" : "triangle"; o.frequency.value = fr;
+      o.connect(env(ctx, t, k ? 0.06 : 0.12, 0.005, 0.7)); o.start(t); o.stop(t + 0.8);
+    });
+  });
+  for (let k = 0; k < 5; k++) {
+    const t = t0 + 0.3 + k * 0.05 + Math.random() * 0.03;
+    const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = 3500 + Math.random() * 2000;
+    o.connect(env(ctx, t, 0.025, 0.002, 0.12)); o.start(t); o.stop(t + 0.15);
+  }
+}
+function playFor(prev, v) {
+  if (!prev || !v) return;
+  const newHand = v.handNo !== prev.handNo && BETTING.includes(v.phase);
+  if (newHand) sDeal(Math.min(4, Math.max(2, v.seats.filter(p => p && p.inHand).length)));
+  else if (v.board.length > prev.board.length && v.handNo === prev.handNo) sDeal(Math.min(3, v.board.length - prev.board.length));
+  const added = (v.logN || 0) - (prev.logN || 0);
+  if (added > 0 && added <= v.log.length && v.log.slice(-added).some(l => l.txt === "checks")) setTimeout(sTap, newHand ? 400 : 0);
+  if (v.phase === "showdown" && prev.phase !== "showdown" && v.result &&
+      v.result.wins.some(w => w.id === myId)) setTimeout(sWin, 250);
+}
+function syncSoundBtn() {
+  const b = $("#soundBtn"); b.textContent = soundOn ? "Sound on" : "Sound off"; b.setAttribute("aria-pressed", String(soundOn));
+}
+$("#soundBtn").onclick = () => { soundOn = !soundOn; store.set("holdem-sound", soundOn ? "on" : "off"); syncSoundBtn(); if (soundOn) { audio(); sTap(); } };
+syncSoundBtn();
 function render() { if (!view) return; renderTable(); renderBar(); renderLog(); }
 
 function renderTable() {
@@ -611,7 +696,7 @@ function renderTable() {
   const board = el("div", "board");
   for (let k = 0; k < 5; k++) board.append(cardEl(s.board[k] || undefined, "lg"));
   const pot = s.seats.reduce((a, p) => a + (p && p.inHand ? p.total : 0), 0);
-  if (s.phase === "waiting") c.append(el("div", "wm", "Hold'em Night"));
+  if (s.phase === "waiting") c.append(el("div", "wm", "LeRoy's Poker Night"));
   c.append(board);
   if (BETTING.includes(s.phase)) c.append(el("div", "pot", "Pot " + money(pot)));
   if (s.phase === "showdown" && s.result) {
